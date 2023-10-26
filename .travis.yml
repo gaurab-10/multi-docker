@@ -1,0 +1,25 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t gaurab/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run gaurab/react-test npm test --coverage
+
+after_success:
+  - docker build -t gaurab/multi-client ./client
+  - docker build -t gaurab/multi-nginx ./nginx
+  - docker build -t gaurab/multi-server ./server
+  - docker build -t gaurab/multi-worker ./worker
+  
+  # login to docker CLI, here it takes values from the travis env variable.
+  echo "$DOCKER_PASSWORD" | docker login  -u "$DOCKER_ID" --password-stdin  
+  
+  # Take these docker images and push it to dockerhub
+  -docker push gaurab/multi-client
+  -docker push gaurab/multi-nginx
+  -docker push gaurab/multi-server
+  -docker push gaurab/multi-worker
+
