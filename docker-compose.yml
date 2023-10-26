@@ -1,0 +1,63 @@
+version: '3'
+services:
+
+  # service 1
+  postgres:
+    # pulls latest postgres version from the docker hub and installs image on local image
+    image: 'postgres:latest'
+    environment:
+      - PGHOST=postgres # postgres images
+      - PGDATABASE=postgres
+      - PGUSER=postgres
+      - PGPASSWORD=password
+      - POSTGRES_PASSWORD= password # Set the superuser password for PostgreSQL
+      - PGPORT=5432
+
+  # service 2
+  redis:
+    image: 'redis:latest'
+    environment:
+      - REDIS_HOST=redis # redis host is redis image
+      - REDIS_PORT=6379
+
+  # service 3
+  api:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./server # file location of dockerfile to be used for server services
+    volumes:
+      # inside the container dont try to override this folder.
+      - /app/node_modules
+      # look at the server directory and copy everything into app folder.
+      # if anything in server folder gets changed then it gets reflected on app folder.
+      - ./server:/app
+
+  # service 4
+  client:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./client
+    volumes:
+      - /app/node_modules
+      - ./client:/app
+
+    # service 5
+  worker:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./worker
+    volumes:
+      - /app/node_modules
+      - ./worker:/app
+
+  # service 6
+  nginx:
+    restart: always
+    build:
+      dockerfile: Dockerfile.dev
+      context: ./nginx
+    ports:
+      - '3050:80'
+
+      
+  
